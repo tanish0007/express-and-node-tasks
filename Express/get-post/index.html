@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get | Post</title>
+</head>
+<body>
+    <h1>This ipage is served by the server using GET request</h1>
+    <form>
+        <fieldset>
+            <legend>&nbspOnclick a POST request will be send</legend>
+            <input type="text" name="username" id="username" placeholder="your name">
+            <input type="email" id="email" placeholder="your email">
+
+            <button id="sendReqBtn" type="button">Send Request</button>
+        </fieldset>
+    </form>
+
+    <textarea name="output" id="output" placeholder="Output will show here.."></textarea>
+
+    <script>
+        const sendReqBtn = document.querySelector('#sendReqBtn');
+        const nameBox = document.querySelector('#username');
+        const emailBox = document.querySelector('#email');
+        const output = document.querySelector('#output');
+        output.readOnly = true;
+
+        function validateEmail(email) {
+            const regEx = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return regEx.test(email);
+        }
+
+        async function getVowelData(name, email) {
+            try {
+                const res = await fetch('http://localhost:3030/vowels', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: name,
+                        email: email
+                    })
+                });
+            
+                const data = await res.json();
+                return data;
+            } catch (err) {
+                console.error('Error:', err);
+            }
+        }
+
+        sendReqBtn.addEventListener('click', async(e) => {
+            try{
+                e.preventDefault();
+
+                if(nameBox.value.trim() == '' || emailBox.value.trim() == '' || !validateEmail(emailBox.value.trim())){
+                    alert('Please enter valid inputs!!');
+                    return;
+                }
+
+                const res = await getVowelData(nameBox.value.trim(), emailBox.value.trim())
+                console.log(res);
+                if(res.success){
+                    output.value = res.message;
+                    output.style.color = "green";
+                }else{
+                    output.value = res.error;
+                    output.style.color = "red";
+                }
+
+            }catch(err){
+                console.log(err);
+            }
+        })
+    </script>
+</body>
+</html>
