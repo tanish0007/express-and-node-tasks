@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get | Post</title>
+    
+</head>
+<body>
+    <h1>This page is served by the server using GET request</h1>
+    <form>
+        <fieldset>
+            <legend>&nbspOnclick a POST request will be send</legend>
+            <input type="text" name="username" id="username" placeholder="your name">
+            <input type="email" id="email" placeholder="your email">
+
+            <button id="sendReqBtn" type="button">Add user details</button>
+        </fieldset>
+    </form>
+    <br>
+    <br>
+    <button id="fetchFileData">Fetch User File Data</button>
+    <br>
+    <textarea name="output" id="output" rows="20" cols="40" placeholder="File data will show here.."></textarea>
+
+    <script>
+        const sendReqBtn = document.querySelector('#sendReqBtn');
+        const nameBox = document.querySelector('#username');
+        const emailBox = document.querySelector('#email');
+        const fetchFileData = document.querySelector('#fetchFileData');
+        const output = document.querySelector('#output');
+        output.readOnly = true;
+
+        function validateEmail(email) {
+            const regEx = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return regEx.test(email);
+        }
+
+        async function sendUserData(name, email) {
+            try {
+                const res = await fetch('http://localhost:3030/sendUser', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: name,
+                        email: email
+                    })
+                });
+            
+                const data = await res.json();
+                return data;
+            } catch (err) {
+                console.error('Error:', err);
+            }
+        }
+
+        async function getFileData() {
+            try {
+                const res = await fetch('http://localhost:3030/getFileData', {
+                    method: 'GET'
+                });
+            
+                const data = await res.json();  
+                return data;
+            } catch (err) {
+                console.error('Error:', err);
+            }
+        }
+
+        sendReqBtn.addEventListener('click', async(e) => {
+            try{
+                e.preventDefault();
+
+                if(nameBox.value.trim() == '' || emailBox.value.trim() == '' || !validateEmail(emailBox.value.trim())){
+                    alert('Please enter valid inputs!!');
+                    return;
+                }
+
+                const res = await sendUserData(nameBox.value.trim(), emailBox.value.trim())
+                console.log(res);
+                if(res.success){
+                    alert(`${res.user.username} having ${res.user.email} mail is added into file.`)
+                }else{
+                    alert(`Error: ${res.error}`)
+                }
+
+            }catch(err){
+                console.log(err);
+            }
+        })
+
+        fetchFileData.addEventListener('click', async () => {
+            try{
+                const response = await getFileData();
+                console.log(response);
+
+                if(response.success){
+                    output.value = response.data;
+                    output.style.color = "green";
+                }
+                else{
+                    output.value = response.error;
+                    output.style.color = "red";
+                }
+            } catch(err){
+                console.log(err);
+            }
+        })
+    </script>
+</body>
+</html>
